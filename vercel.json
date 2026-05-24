@@ -1,7 +1,8 @@
 {
   "functions": {
     "api/projections.py": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "includeFiles": "*.py"
     }
   }
 }
