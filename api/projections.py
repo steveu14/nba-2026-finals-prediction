@@ -394,7 +394,9 @@ def run_model():
 
 def handler(environ, start_response):
     method = environ.get("REQUEST_METHOD", "GET")
+    path   = environ.get("PATH_INFO", "/")
 
+    # ── CORS preflight ────────────────────────────────────────────────────────
     if method == "OPTIONS":
         start_response("200 OK", [
             ("Access-Control-Allow-Origin",  "*"),
@@ -402,20 +404,40 @@ def handler(environ, start_response):
         ])
         return [b""]
 
-    try:
-        payload = run_model()
-        body    = json.dumps(payload).encode()
-        start_response("200 OK", [
-            ("Content-Type",  "application/json"),
-            ("Cache-Control", "public, s-maxage=300, stale-while-revalidate=60"),
-            ("Access-Control-Allow-Origin", "*"),
-        ])
-        return [body]
+    # ── API: return JSON projections ─────────────────────────────────────────
+    if path == "/api/projections":
+        try:
+            payload = run_model()
+            body    = json.dumps(payload).encode()
+            start_response("200 OK", [
+                ("Content-Type",  "application/json"),
+                ("Cache-Control", "public, s-maxage=300, stale-while-revalidate=60"),
+                ("Access-Control-Allow-Origin", "*"),
+            ])
+            return [body]
+        except Exception as exc:
+            err = json.dumps({"error": str(exc), "type": type(exc).__name__}).encode()
+            start_response("500 Internal Server Error", [
+                ("Content-Type", "application/json"),
+                ("Access-Control-Allow-Origin", "*"),
+            ])
+            return [err]
 
-    except Exception as exc:
-        err = json.dumps({"error": str(exc), "type": type(exc).__name__}).encode()
-        start_response("500 Internal Server Error", [
-            ("Content-Type", "application/json"),
-            ("Access-Control-Allow-Origin", "*"),
+    # ── Frontend: serve public/index.html for all other routes ───────────────
+    import os
+    try:
+        _base = os.path.dirname(os.path.abspath(__file__))
+    except NameError:
+        _base = os.getcwd()
+    html_path = os.path.join(_base, "..", "public", "index.html")
+    try:
+        with open(html_path, "rb") as f:
+            html = f.read()
+        start_response("200 OK", [
+            ("Content-Type",  "text/html; charset=utf-8"),
+            ("Cache-Control", "public, max-age=60"),
         ])
-        return [err]
+        return [html]
+    except Exception as exc:
+        start_response("404 Not Found", [("Content-Type", "text/plain")])
+        return [f"index.html not found: {exc}".encode()]
