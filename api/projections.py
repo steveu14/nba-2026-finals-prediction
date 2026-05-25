@@ -236,7 +236,7 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/projections");
+      const res = await fetch("/?data=1");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setData(json);
@@ -878,7 +878,8 @@ def handler(environ, start_response):
         return [b""]
 
     # ── API: return JSON projections ─────────────────────────────────────────
-    if path in ("/projections", "/api/projections"):
+    query = environ.get("QUERY_STRING", "")
+    if "data=1" in query or path in ("/projections", "/api/projections"):
         try:
             payload = run_model()
             body    = json.dumps(payload).encode()
