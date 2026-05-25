@@ -546,8 +546,8 @@ FALLBACK_GAMES = [
     ("SAS","MIN","SAS"),("SAS","MIN","SAS"),("MIN","SAS","MIN"),("SAS","MIN","MIN"),
     ("SAS","MIN","SAS"),("SAS","MIN","MIN"),
     # Round 3 – Conf Finals (through May 22 2026)
-    ("NYK","CLE","NYK"),("NYK","CLE","NYK"),          # East: NYK leads 2-0
-    ("SAS","OKC","OKC"),("OKC","SAS","OKC"),("OKC","SAS","SAS"),  # West: OKC leads 2-1
+    ("NYK","CLE","NYK"),("NYK","CLE","NYK"),("NYK","CLE","CLE"),  # East: NYK leads 3-0
+    ("SAS","OKC","OKC"),("OKC","SAS","OKC"),("OKC","SAS","SAS"),("SAS","OKC","SAS"),  # West: tied 2-2
 ]
 
 
@@ -877,8 +877,9 @@ def handler(environ, start_response):
         ])
         return [b""]
 
+    query  = environ.get("QUERY_STRING", "")
+
     # ── API: return JSON projections ─────────────────────────────────────────
-    query = environ.get("QUERY_STRING", "")
     if "data=1" in query or path in ("/projections", "/api/projections"):
         try:
             payload = run_model()
