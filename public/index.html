@@ -221,7 +221,7 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/projections");
+      const res = await fetch("/projections");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setData(json);

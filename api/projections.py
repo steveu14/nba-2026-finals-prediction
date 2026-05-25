@@ -405,7 +405,7 @@ def handler(environ, start_response):
         return [b""]
 
     # ── API: return JSON projections ─────────────────────────────────────────
-    if path == "/api/projections":
+    if path in ("/projections", "/api/projections"):
         try:
             payload = run_model()
             body    = json.dumps(payload).encode()
