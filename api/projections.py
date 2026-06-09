@@ -545,15 +545,16 @@ FALLBACK_GAMES = [
     ("OKC","LAL","OKC"),("OKC","LAL","OKC"),("OKC","LAL","LAL"),("OKC","LAL","LAL"),
     ("SAS","MIN","SAS"),("SAS","MIN","SAS"),("MIN","SAS","MIN"),("SAS","MIN","MIN"),
     ("SAS","MIN","SAS"),("SAS","MIN","MIN"),
-    # ECF — NYK def CLE 4-0
+    # ECF – NYK def CLE 4-0
     ("NYK","CLE","NYK"),("NYK","CLE","NYK"),("NYK","CLE","CLE"),("NYK","CLE","CLE"),
-    # WCF — SAS def OKC 4-3
+    # WCF – SAS def OKC 4-3
     ("SAS","OKC","OKC"),("OKC","SAS","OKC"),("OKC","SAS","SAS"),
     ("SAS","OKC","SAS"),("OKC","SAS","OKC"),("SAS","OKC","SAS"),
     ("SAS","OKC","OKC"),  # G7 at OKC: SAS wins
-    # NBA Finals — NYK leads SAS 2-0
-    ("NYK","SAS","SAS"),  # G1 at SAS: NYK wins
-    ("NYK","SAS","SAS"),  # G2 at SAS: NYK wins
+    # NBA Finals – NYK leads SAS 2-1
+    ("NYK","SAS","SAS"),  # G1 at SAS: NYK wins 105-95
+    ("NYK","SAS","SAS"),  # G2 at SAS: NYK wins 105-104
+    ("SAS","NYK","NYK"),  # G3 at NYK: SAS wins
 ]
 
 
@@ -741,6 +742,18 @@ def spob(ta, tb, ht, elo, wa=0, wb=0, gtw=4):
 
 def project(elo, act, sw):
     if not act:
+        finalists = [t for t, w in sw.items() if w == 3]
+        if len(finalists) == 2:
+            t1, t2 = finalists
+            west = t1 if t1 in WEST else t2
+            east = t2 if t1 in WEST else t1
+            p = spob(t1, t2, west, elo)
+            p_east = p if t1 in EAST else 1 - p
+            return {"champion_probs": {t1: p, t2: 1-p}, "conf_final_probs": {},
+                    "matchup_details": [{"east": east, "west": west, "prob_matchup": 100.0,
+                                         "prob_east_wins": round(p_east*100,1),
+                                         "prob_west_wins": round((1-p_east)*100,1)}],
+                    "status": "finals"}
         champ = max(sw, key=sw.get) if sw else None
         return {"champion_probs": {champ: 1.0} if champ else {},
                 "conf_final_probs": {}, "matchup_details": [], "status": "complete"}
