@@ -324,6 +324,25 @@ function Dashboard({ data }) {
 
   return (
     <>
+      {/* Champion banner */}
+      {data.status === "complete" && data.champion && (
+        <div style={{marginBottom: 28}}>
+          <div className="card" style={{
+            textAlign: "center",
+            background: `linear-gradient(135deg, ${color(data.champion)}22, var(--surface))`,
+            border: `1px solid ${color(data.champion)}55`,
+          }}>
+            <div style={{fontSize: "2.4rem", marginBottom: 8}}>🏆</div>
+            <div style={{fontSize: "1.4rem", fontWeight: 900, color: color(data.champion)}}>
+              {data.team_ratings.find(t=>t.abbr===data.champion)?.name || data.champion}
+            </div>
+            <div style={{color: "var(--muted)", fontSize: "0.85rem", marginTop: 4}}>
+              2026 NBA Champions
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Championship odds */}
       <div style={{marginBottom: 28}}>
         <div className="section-title">🏆 Championship Probability</div>
@@ -435,6 +454,44 @@ function Dashboard({ data }) {
         </div>
       )}
 
+      {/* Prediction History */}
+      {data.prediction_history && data.prediction_history.length > 0 && (
+        <div style={{marginBottom: 28}}>
+          <div className="section-title">📜 Prediction History</div>
+          <div className="card">
+            {data.prediction_history.map((snap, i) => (
+              <div key={i} style={{
+                padding: "14px 0",
+                borderBottom: i < data.prediction_history.length - 1 ? "1px solid var(--border)" : "none",
+              }}>
+                <div style={{display:"flex", justifyContent:"space-between", flexWrap:"wrap", gap: 6, marginBottom: 6}}>
+                  <div style={{fontWeight: 700, fontSize: "0.9rem"}}>{snap.label}</div>
+                  <div style={{color: "var(--muted)", fontSize: "0.75rem"}}>{snap.date}</div>
+                </div>
+                <div style={{color: "var(--muted)", fontSize: "0.78rem", marginBottom: 8}}>
+                  {snap.context}
+                </div>
+                <div style={{display:"flex", flexWrap:"wrap", gap: 8, marginBottom: 8}}>
+                  {snap.predictions.map((p, j) => (
+                    <div key={j} style={{
+                      display:"flex", alignItems:"center", gap: 6,
+                      background: "var(--surface2)", borderRadius: 6,
+                      padding: "4px 10px", fontSize: "0.8rem",
+                    }}>
+                      <span style={{color: color(p.team), fontWeight: 800}}>{p.team}</span>
+                      <span style={{fontWeight: 700}}>{p.prob}%</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{fontSize: "0.78rem", color: "var(--text)", opacity: 0.85}}>
+                  {snap.result}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <div style={{textAlign:"center", color:"var(--muted)", fontSize:"0.75rem", marginTop: 16}}>
         Model: ELO + Net Rating + SRS · Data: nba_api (stats.nba.com) + Basketball-Reference
@@ -519,6 +576,86 @@ TEAM_NAMES = {
 EAST = {"ATL","BOS","BKN","CHA","CHI","CLE","DET","IND","MIA","MIL","NYK","ORL","PHI","TOR","WAS"}
 WEST = {"DAL","DEN","GSW","HOU","LAC","LAL","MEM","MIN","NOP","OKC","PHX","POR","SAC","SAS","UTA"}
 
+# ═════════════════════════════════════════════════════════════════════════════
+#  PREDICTION HISTORY
+#  Snapshots of what this model predicted at each stage of the playoffs,
+#  recorded as the project progressed. Final outcome: NYK def SAS 4-1.
+# ═════════════════════════════════════════════════════════════════════════════
+PREDICTION_HISTORY = [
+    {
+        "label": "Conference Finals begin",
+        "date": "May 23, 2026",
+        "context": "East: NYK leads CLE 2-0  |  West: OKC leads SAS 2-1",
+        "predictions": [
+            {"team": "OKC", "prob": 86.9},
+            {"team": "NYK", "prob": 7.5},
+            {"team": "SAS", "prob": 5.5},
+            {"team": "CLE", "prob": 0.1},
+        ],
+        "result": "OKC was the model's favorite (86.9%) to win it all.",
+    },
+    {
+        "label": "WCF Game 7 (OKC vs SAS)",
+        "date": "May 30, 2026",
+        "context": "ECF: NYK swept CLE 4-0  |  WCF: tied 3-3, Game 7 at OKC",
+        "predictions": [
+            {"team": "OKC", "prob": 73.7},
+            {"team": "SAS", "prob": 26.3},
+        ],
+        "result": "Model favored OKC (73.7%) to win Game 7 at home. SAS won 111-103 on the road \u2014 series upset.",
+    },
+    {
+        "label": "NBA Finals begin (NYK vs SAS)",
+        "date": "June 3, 2026",
+        "context": "SAS won WCF 4-3 over OKC  |  NYK swept CLE 4-0 in ECF",
+        "predictions": [
+            {"team": "SAS", "prob": 75.3},
+            {"team": "NYK", "prob": 24.7},
+        ],
+        "result": "Model favored SAS (75.3%) based on momentum from the Game 7 road win. NYK opened 2-0 instead.",
+    },
+    {
+        "label": "After Finals G2 (NYK leads 2-0)",
+        "date": "June 6, 2026",
+        "context": "NYK won G1 105-95 and G2 105-104, both at San Antonio",
+        "predictions": [
+            {"team": "NYK", "prob": 81.1},
+            {"team": "SAS", "prob": 18.9},
+        ],
+        "result": "Model swung hard to NYK (81.1%) after two road wins. SAS won G3 to cut the lead.",
+    },
+    {
+        "label": "After Finals G3 (NYK leads 2-1)",
+        "date": "June 9, 2026",
+        "context": "SAS won G3 115-111 at Madison Square Garden",
+        "predictions": [
+            {"team": "NYK", "prob": 68.4},
+            {"team": "SAS", "prob": 31.6},
+        ],
+        "result": "Model still favored NYK (68.4%) but the series was tightening. NYK won G4 to reach the brink.",
+    },
+    {
+        "label": "After Finals G4 (NYK leads 3-1)",
+        "date": "June 11, 2026",
+        "context": "NYK won G4 107-106 at home, one win from the title",
+        "predictions": [
+            {"team": "NYK", "prob": 92.3},
+            {"team": "SAS", "prob": 7.7},
+        ],
+        "result": "Model gave NYK a 92.3% chance to close it out. NYK won G5 94-90 at San Antonio.",
+    },
+    {
+        "label": "FINAL \u2014 NYK are 2026 NBA Champions",
+        "date": "June 13, 2026",
+        "context": "NYK def SAS 4-1  |  Jalen Brunson: 45 PTS in the clinching Game 5",
+        "predictions": [
+            {"team": "NYK", "prob": 100.0},
+        ],
+        "result": "New York Knicks win their first championship since 1973.",
+    },
+]
+
+
 FALLBACK_GAMES = [
     # Round 1 – East
     ("DET","ORL","DET"),("DET","ORL","DET"),("ORL","DET","ORL"),("ORL","DET","ORL"),
@@ -551,10 +688,12 @@ FALLBACK_GAMES = [
     ("SAS","OKC","OKC"),("OKC","SAS","OKC"),("OKC","SAS","SAS"),
     ("SAS","OKC","SAS"),("OKC","SAS","OKC"),("SAS","OKC","SAS"),
     ("SAS","OKC","OKC"),  # G7 at OKC: SAS wins
-    # NBA Finals – NYK leads SAS 2-1
+    # NBA Finals – NYK def SAS 4-1, NYK are 2026 NBA CHAMPIONS
     ("NYK","SAS","SAS"),  # G1 at SAS: NYK wins 105-95
     ("NYK","SAS","SAS"),  # G2 at SAS: NYK wins 105-104
-    ("SAS","NYK","NYK"),  # G3 at NYK: SAS wins
+    ("SAS","NYK","NYK"),  # G3 at NYK: SAS wins 115-111
+    ("NYK","SAS","NYK"),  # G4 at NYK: NYK wins 107-106
+    ("NYK","SAS","SAS"),  # G5 at SAS: NYK wins 94-90 — CLINCHES TITLE
 ]
 
 
@@ -756,7 +895,8 @@ def project(elo, act, sw):
                     "status": "finals"}
         champ = max(sw, key=sw.get) if sw else None
         return {"champion_probs": {champ: 1.0} if champ else {},
-                "conf_final_probs": {}, "matchup_details": [], "status": "complete"}
+                "conf_final_probs": {}, "matchup_details": [], "status": "complete",
+                "champion": champ}
 
     finals = [s for s in act if s["conference"] == "Finals"]
     conf   = [s for s in act if s["conference"] != "Finals"]
@@ -834,6 +974,11 @@ def run_model():
     elo    = build_elo(games)
     proj   = project(elo, act, sw)
 
+    # When the tournament is complete, show both Finals participants
+    if proj.get("status") == "complete" and len(remain) < 2:
+        finalists = [t for t, w in sw.items() if w >= 3]
+        remain = list(set(remain) | set(finalists))
+
     def fp(d): return {k: round(v * 100, 1) for k, v in d.items()}
 
     ratings = []
@@ -877,6 +1022,7 @@ def run_model():
         "active_series":    series_out,
         "remaining_teams":  remain,
         "team_ratings":     ratings,
+        "prediction_history": PREDICTION_HISTORY,
     }
 
 
